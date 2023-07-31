@@ -1,0 +1,55 @@
+(ns unicorn.main
+  (:require
+    ["package:flutter/widgets.dart" :as w]
+    ["package:flutter/material.dart" :as m]
+    ["package:syncfusion_flutter_charts/charts.dart" :as ch]
+    [tilton.fmx.api :as fx]
+    [tilton.fmx.factory :as fxf]
+    [tilton.mx.api :as mx]))
+
+(fxf/deftags tilton.fmx.factory/childless-stateful
+             (sf-cartesian-chart ch/SfCartesianChart))
+
+(defn make-spline-series [data]
+  (ch/SplineSeries
+    .dataSource data
+    .xValueMapper (fn [v _] (:x v))
+    .yValueMapper (fn [v _] (:y v))
+    .splineType (ch/SplineType.natural)))
+
+(defn make-app []
+  (fx/material-app
+    {:title "F/MX Hello World"
+     :theme (m/ThemeData
+              .primarySwatch m/Colors.orange
+              .brightness m/Brightness.dark
+              .useMaterial3 false)}
+    (fx/scaffold
+      {:appBar (fx/app-bar {:title (fx/text "Welcome to Flutter/MX")})}
+      (fx/center
+        (sf-cartesian-chart
+          {:title  (ch/ChartTitle .text "Cartesian Chart")
+           :legend (ch/Legend .isVisible true)
+           :series (mx/cF #dart ^ch/ChartSeries
+                          [(make-spline-series
+                             (list {:x 0.0, :y 10}
+
+                                   ;; ====================== PROBLEM ======================
+
+                                   {:x 1.0, :y 20}
+                                   ;; ^^^ works
+
+                                   ;;{:x 1.0, :y (mx/mget me :sample-value)}
+                                   ;; ^^^ doesn't work (just uncomment above line to see)
+
+                                   ;; ====================== PROBLEM END ==================
+
+                                   ))])}
+          {:sample-value 30})))))
+
+
+(defn main []
+  (.ensureInitialized w/WidgetsFlutterBinding)
+  (fx/run-app
+    (fx/fx-render nil
+                  (make-app))))
