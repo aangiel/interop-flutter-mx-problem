@@ -3,6 +3,7 @@
     ["package:flutter/widgets.dart" :as w]
     ["package:flutter/material.dart" :as m]
     ["package:syncfusion_flutter_charts/charts.dart" :as ch]
+    ["dart:math" :as math]
     [tilton.fmx.api :as fx]
     [tilton.fmx.factory :as fxf]
     [tilton.mx.api :as mx]))
@@ -56,14 +57,14 @@
             {:title  (ch/ChartTitle .text "Cartesian Chart")
              :legend (ch/Legend .isVisible true)
              :series (mx/cF (fx/as-is
-                              (let [^#/(List ch/SplineSeries) s
+                              (let [y-cell (mx/mget (mx/fm* :pipe-nominal-size) :value)
+
+                                    ^#/(List ch/SplineSeries) series
                                     [(make-spline-series
                                        (->> (range 0 (+ 120 1))
                                             (map #(hash-map :x %
-                                                            :y (* (mx/mget (mx/fm* :pipe-nominal-size) :value) %)))))]]
-                                s)))}
-            {:sample-value 30
-             #_#_:safety-too {:x 0.5, :y 190.5}}))))))
+                                                            :y (math/sin (/ % y-cell))))))]]
+                                series)))}))))))
 
 
 (defn main []
