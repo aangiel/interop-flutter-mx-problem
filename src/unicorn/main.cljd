@@ -8,7 +8,9 @@
     [tilton.mx.api :as mx]))
 
 (fxf/deftags tilton.fmx.factory/childless-stateful
-             (sf-cartesian-chart ch/SfCartesianChart))
+             (dropdown-button-form-field m/DropdownButtonFormField)
+             (sf-cartesian-chart ch/SfCartesianChart)
+             (text-form-field m/TextFormField))
 
 (defn make-spline-series [data]
   (ch/SplineSeries
@@ -25,27 +27,45 @@
               .brightness m/Brightness.dark
               .useMaterial3 false)}
     (fx/scaffold
-      {:appBar (fx/app-bar {:title (fx/text "Welcome to Flutter/MX")})}
-      (fx/center
-        (sf-cartesian-chart
-          {:title  (ch/ChartTitle .text "Cartesian Chart")
-           :legend (ch/Legend .isVisible true)
-           :series (mx/cF #dart ^ch/ChartSeries
-                          [(make-spline-series
-                             (list {:x 0.0, :y 10}
+      {:appBar (m/AppBar :title (m/Text "Welcome to Flutter/MX"))}
+      (fx/row
+        (fx/expanded
+          {:flex 2}
+          (fx/column (dropdown-button-form-field
+            {:value      (mx/cI {:x 0.5, :y 190.5})
+             :onChanged  (mx/cF #(mx/mset! me :value %))
+             :items      [(m/DropdownMenuItem
+                            .value {:x 0.5, :y 190.5}
+                            .child (m/Text (str {:x 0.5, :y 190.5})))
+                          (m/DropdownMenuItem
+                            .value {:x 11, :y 75.6}
+                            .child (m/Text (str {:x 11, :y 75.6})))]}
+            {:name :pipe-nominal-size})
 
-                                   ;; ====================== PROBLEM ======================
+          (text-form-field
+            {:enabled    false
+             :controller (mx/cF (m/TextEditingController
+                                  .text (str (mx/mget me :value))))}
+            {:name  :cross-section-area
+             :value (mx/cF (mx/mget (mx/fm* :pipe-nominal-size)
+                                    :value))})))
 
-                                   {:x 1.0, :y 20}
-                                   ;; ^^^ works
-
-                                   ;;{:x 1.0, :y (mx/mget me :sample-value)}
-                                   ;; ^^^ doesn't work (just uncomment above line to see)
-
-                                   ;; ====================== PROBLEM END ==================
-
-                                   ))])}
-          {:sample-value 30})))))
+        (fx/expanded
+          {:flex 8}
+          (sf-cartesian-chart
+            {:title  (ch/ChartTitle .text "Cartesian Chart")
+             :legend (ch/Legend .isVisible true)
+             :series (mx/cF (fx/as-is
+                              (let [^#/(List ch/SplineSeries) s [(make-spline-series
+                                                                   [{:x 0.0, :y 10}
+                                                                    ;; safety
+                                                                    ;; {:x 0.5, :y 19}
+                                                                    (map #(* 2 (mx/mget (mx/fm* :pipe-nominal-size)
+                                                                                        :value)))
+                                                                    {:x 1.0, :y 20}])]]
+                                s)))}
+            {:sample-value 30
+             #_#_:safety-too   {:x 0.5, :y 190.5}}))))))
 
 
 (defn main []
